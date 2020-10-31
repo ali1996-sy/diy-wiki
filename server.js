@@ -66,9 +66,10 @@ app.get('/api/page/:slug', async (req, res) => {
 app.post('/api/page/:slug', async (req, res) => {
   const filename = slugToPath(req.params.slug);
   try {
-
+    await writeFile(slugToPath(req.params.slug), req.body.body, 'utf8');
+    jsonOK(res, {});
   } catch (e) {
-
+    res.json({ status: 'error', message: 'Cant write the page.' });
   }
 });
 
