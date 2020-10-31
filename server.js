@@ -98,8 +98,30 @@ app.get('/api/pages/all', async (req, res,next) => {
 // hint: use the TAG_RE regular expression to search the contents of each file
 //  success response: {status:'ok', tags: ['tagName', 'otherTagName']}
 //  failure response: no failure response
-app.get('/api/tags/all', async (req, res) => {
-
+app.get('/api/tags/all', async (req, res,next) => {
+  fs.readdir(DATA_DIR, (err, array) => {
+    if (!array) {
+      res.status(404).end();
+      return;
+    }
+    if (err) {
+      next(err);
+      return;
+    }
+    array = array.map((x) => x.replace(/(\.md)$/gi, ''));
+    Promise.all(
+      array.map(async (item) => {
+        try {
+          const text = await readFile(slugToPath(item), 'utf8');
+          return text.match(TAG_RE);
+        } catch (err) {
+          return err;
+        }
+      })
+    ).then((data) => {
+      jsonOK(res, { tags: data.map((item) => item.replace('#', '')) });
+    });
+  });
 });
 
 
